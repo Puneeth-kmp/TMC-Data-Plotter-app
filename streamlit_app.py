@@ -1,8 +1,9 @@
 import io
 import re
-import matplotlib.pyplot as plt
-from collections import defaultdict
+import pandas as pd
+import altair as alt
 import streamlit as st
+from collections import defaultdict
 
 def extract_data(file):
     data = defaultdict(lambda: defaultdict(list))
@@ -46,30 +47,19 @@ def plot_data(selected_id, selected_measurements, data):
     for index, measurement in enumerate(selected_measurements):
         values = data[selected_id][measurement]
         if values:
-            plt.figure(figsize=(10, 6))
+            df = pd.DataFrame({
+                'Index': range(len(values)),
+                measurement: values
+            })
 
-            # Determine if values are numeric or not
-            is_numeric = all(isinstance(val, (int, float)) for val in values)
+            # Create Altair chart
+            chart = alt.Chart(df).mark_line().encode(
+                x='Index:O',
+                y=f'{measurement}:Q',
+                tooltip=['Index', measurement]
+            ).interactive()
 
-            if is_numeric:
-                plt.plot(values, marker='o', linestyle='-', label=measurement)
-                plt.xlabel('Index')
-                plt.ylabel(measurement)
-                plt.title(f'{selected_id} - {measurement}')
-                plt.grid(True)
-                plt.legend()
-            else:
-                plt.scatter(range(len(values)), [0]*len(values), c='blue', label=measurement)
-                plt.xlabel('Index')
-                plt.ylabel('No Value')
-                plt.title(f'{selected_id} - {measurement}')
-                plt.grid(True)
-                plt.legend()
-                for i, txt in enumerate(values):
-                    plt.annotate(txt, (i, 0))
-
-            st.pyplot(plt)  # Render the plot with Streamlit
-            plt.close()
+            st.altair_chart(chart, use_container_width=True)
 
 def main():
     st.title('Enhanced CAN Bus Data Plotter')
