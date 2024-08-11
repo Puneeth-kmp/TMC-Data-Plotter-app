@@ -105,7 +105,7 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
 
 # Main function to handle the Streamlit app logic
 def main():
-    st.set_page_config(layout="centered", page_icon="📈", page_title="Takumi CAN Bus Data Plotter")
+    st.set_page_config(layout="centered", page_icon="https://github.com/Puneeth-kmp/TMC/blob/main/.devcontainer/PCANBasicExampleIcon.ico", page_title="Takumi CAN Bus Data Plotter")
     st.title("Takumi CAN Bus Data Plotter")
     
     # Add logo
@@ -143,4 +143,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
