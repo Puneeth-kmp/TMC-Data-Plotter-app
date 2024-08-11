@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from datetime import datetime
 from collections import defaultdict
 import io
 import re
@@ -37,7 +36,7 @@ def extract_data(file):
                 try:
                     value = float(value.replace('A', '').replace('rpm', '').replace('deg', '').replace('Nm', ''))
                 except ValueError:
-                    pass
+                    continue
                 data[current_id][key].append(value)
 
     except Exception as e:
@@ -80,8 +79,6 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
                 fig = px.box(df, y='Value', title=f'Box Plot for {measurement}', 
                              color_discrete_sequence=[color_palette[i % len(color_palette)]])
             elif chart_type == 'Stacked Bar Chart':
-                # For a stacked bar chart, we need to aggregate data by some category.
-                # Assuming 'Index' is the category for stacking
                 df['Index'] = df['Index'].astype(str)
                 fig = px.bar(df, x='Index', y='Value', title=f'Stacked Bar Chart for {measurement}', 
                              color='Index', color_discrete_sequence=color_palette)
@@ -93,13 +90,10 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
                 st.write(f"Unsupported chart type: {chart_type}")
                 return
 
-            # Update layout for interactivity
             fig.update_layout(width=700, height=400)
-
             measurement_plots.append(fig)
 
-    if measurement_plots:s
-        # Display all charts in a vertical layout
+    if measurement_plots:
         for fig in measurement_plots:
             st.plotly_chart(fig, use_container_width=True)
     else:
