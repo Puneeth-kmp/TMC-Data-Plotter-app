@@ -79,6 +79,16 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
             elif chart_type == 'Box Plot':
                 fig = px.box(df, y='Value', title=f'Box Plot for {measurement}', 
                              color_discrete_sequence=[color_palette[i % len(color_palette)]])
+            elif chart_type == 'Stacked Bar Chart':
+                # For a stacked bar chart, we need to aggregate data by some category.
+                # Assuming 'Index' is the category for stacking
+                df['Index'] = df['Index'].astype(str)
+                fig = px.bar(df, x='Index', y='Value', title=f'Stacked Bar Chart for {measurement}', 
+                             color='Index', color_discrete_sequence=color_palette)
+            elif chart_type == 'Donut Chart':
+                df = df.groupby('Value').size().reset_index(name='Count')
+                fig = px.pie(df, values='Count', names='Value', title=f'Donut Chart for {measurement}', 
+                             hole=0.3)  # hole size for donut chart
             else:
                 st.write(f"Unsupported chart type: {chart_type}")
                 return
@@ -120,7 +130,7 @@ def main():
 
                 chart_type = st.selectbox("Select chart type", [
                     'Line Chart', 'Bar Chart', 'Scatter Plot', 'Area Chart',
-                    'Histogram', 'Box Plot'
+                    'Histogram', 'Box Plot', 'Stacked Bar Chart', 'Donut Chart'
                 ])
 
                 if selected_measurements:
