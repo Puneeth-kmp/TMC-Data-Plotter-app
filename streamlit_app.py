@@ -106,10 +106,11 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
 # Main function to handle the Streamlit app logic
 def main():
     st.set_page_config(layout="centered", page_icon="https://raw.githubusercontent.com/Puneeth-kmp/TMC/main/.devcontainer/PCANBasicExampleIcon.ico", page_title="Takumi CAN Bus Data Plotter")
-    st.title("Takumi CAN Bus Data Plotter")
     
-    # Add logo
+    # Add logo at the top
     st.image("https://raw.githubusercontent.com/Puneeth-kmp/TMC-Data-Plotter-app/main/takumimotioncontrols_logo.jpeg", width=200)
+    
+    st.title("Takumi CAN Bus Data Plotter")
 
     uploaded_file = st.file_uploader("Upload a CAN bus data file", type="txt")
 
