@@ -6,6 +6,6 @@ google-auth
 google-auth-httplib2
 protobuf
 plotly
-requests Pillow
+pillow
 click==8
 
