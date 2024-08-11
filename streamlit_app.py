@@ -80,8 +80,6 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
                 fig = px.box(df, y='Value', title=f'Box Plot for {measurement}', 
                              color_discrete_sequence=[color_palette[i % len(color_palette)]])
             elif chart_type == 'Stacked Bar Chart':
-                # For a stacked bar chart, we need to aggregate data by some category.
-                # Assuming 'Index' is the category for stacking
                 df['Index'] = df['Index'].astype(str)
                 fig = px.bar(df, x='Index', y='Value', title=f'Stacked Bar Chart for {measurement}', 
                              color='Index', color_discrete_sequence=color_palette)
@@ -107,8 +105,11 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
 
 # Main function to handle the Streamlit app logic
 def main():
-    st.set_page_config(layout="centered", page_icon="📈", page_title="CAN Bus Data Plotter")
-    st.title("CAN Bus Data Plotter")
+    st.set_page_config(layout="centered", page_icon="📈", page_title="Takumi CAN Bus Data Plotter")
+    st.title("Takumi CAN Bus Data Plotter")
+    
+    # Add logo
+    st.image("https://github.com/Puneeth-kmp/TMC-Data-Plotter-app/blob/main/takumimotioncontrols_logo.jpeg", width=200)
 
     uploaded_file = st.file_uploader("Upload a CAN bus data file", type="txt")
 
@@ -142,3 +143,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
