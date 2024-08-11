@@ -1,4 +1,3 @@
-add this https://github.com/Puneeth-kmp/TMC-Data-Plotter-app/blob/main/takumimotioncontrols_logo.jpeglogo and add the heading Takumi CAN Bus Data Plotter or somthing much proffenal import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
