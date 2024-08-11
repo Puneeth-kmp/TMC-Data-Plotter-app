@@ -122,7 +122,8 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
 
 # Main function to handle the Streamlit app logic
 def main():
-    st.set_page_config(layout="centered", page_icon=img_to_base64(load_icon()), page_title="Takumi CAN Bus Data Plotter")
+    icon_base64 = img_to_base64(load_icon())
+    st.set_page_config(layout="centered", page_icon=f"data:image/x-icon;base64,{icon_base64}", page_title="Takumi CAN Bus Data Plotter")
     
     # Add logo at the top
     st.image("https://raw.githubusercontent.com/Puneeth-kmp/TMC-Data-Plotter-app/main/takumimotioncontrols_logo.png", width=200)
@@ -161,3 +162,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
