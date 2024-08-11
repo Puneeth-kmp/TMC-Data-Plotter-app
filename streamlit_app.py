@@ -1,27 +1,10 @@
-import streamlit as st
+add this https://github.com/Puneeth-kmp/TMC-Data-Plotter-app/blob/main/takumimotioncontrols_logo.jpeglogo and add the heading Takumi CAN Bus Data Plotter or somthing much proffenal import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
 from collections import defaultdict
 import io
 import re
-import requests
-from PIL import Image
-import base64
-
-# Function to load the icon image from GitHub URL
-def load_icon():
-    icon_url = "https://raw.githubusercontent.com/Puneeth-kmp/TMC/main/.devcontainer/PCANBasicExampleIcon.ico"
-    response = requests.get(icon_url)
-    img = Image.open(io.BytesIO(response.content))
-    return img
-
-# Function to convert image to base64 for embedding in HTML
-def img_to_base64(img):
-    buffer = io.BytesIO()
-    img.save(buffer, format="ICO")
-    img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    return img_base64
 
 # Function to extract data from the uploaded file
 def extract_data(file):
@@ -97,6 +80,8 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
                 fig = px.box(df, y='Value', title=f'Box Plot for {measurement}', 
                              color_discrete_sequence=[color_palette[i % len(color_palette)]])
             elif chart_type == 'Stacked Bar Chart':
+                # For a stacked bar chart, we need to aggregate data by some category.
+                # Assuming 'Index' is the category for stacking
                 df['Index'] = df['Index'].astype(str)
                 fig = px.bar(df, x='Index', y='Value', title=f'Stacked Bar Chart for {measurement}', 
                              color='Index', color_discrete_sequence=color_palette)
@@ -122,13 +107,8 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
 
 # Main function to handle the Streamlit app logic
 def main():
-    icon_base64 = img_to_base64(load_icon())
-    st.set_page_config(layout="centered", page_icon=f"data:image/x-icon;base64,{icon_base64}", page_title="Takumi CAN Bus Data Plotter")
-    
-    # Add logo at the top
-    st.image("https://raw.githubusercontent.com/Puneeth-kmp/TMC-Data-Plotter-app/main/takumimotioncontrols_logo.png", width=200)
-    
-    st.title("Takumi CAN Bus Data Plotter")
+    st.set_page_config(layout="centered", page_icon="📈", page_title="CAN Bus Data Plotter")
+    st.title("CAN Bus Data Plotter")
 
     uploaded_file = st.file_uploader("Upload a CAN bus data file", type="txt")
 
