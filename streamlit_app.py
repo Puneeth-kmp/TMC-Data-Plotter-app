@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from datetime import datetime
 from collections import defaultdict
 import io
@@ -28,8 +27,11 @@ def extract_data(file):
             bytes_match = data_bytes_pattern.search(line)
             if bytes_match and current_id:
                 data_bytes = bytes_match.group(1)
-                values = [int(b, 16) for b in data_bytes.split()]
-                data[current_id]['Data Bytes'].append(values)
+                try:
+                    values = [int(b, 16) for b in data_bytes.split()]
+                    data[current_id]['Data Bytes'].append(values)
+                except ValueError:
+                    st.error(f"Invalid data bytes format in line: {line}")
                 continue
 
             measurement_match = measurement_pattern.search(line)
@@ -37,9 +39,9 @@ def extract_data(file):
                 key, value = measurement_match.groups()
                 try:
                     value = float(value.replace('A', '').replace('rpm', '').replace('deg', '').replace('Nm', ''))
+                    data[current_id][key].append(value)
                 except ValueError:
-                    pass
-                data[current_id][key].append(value)
+                    st.error(f"Invalid measurement value format in line: {line}")
 
     except Exception as e:
         st.error(f"Error reading the file: {e}")
@@ -92,7 +94,6 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
                 fig = px.scatter(df, x='Index', y='Value', size='Value', title=f'Bubble Chart for {measurement}', 
                                 color_discrete_sequence=[color_palette[i % len(color_palette)]])
             elif chart_type == 'Radar Chart':
-                # Plotly Radar charts require specialized data; using a simple line chart instead
                 st.write("Radar charts are not supported by Plotly Express; consider using Plotly Graph Objects.")
                 continue
             else:
