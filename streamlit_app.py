@@ -16,6 +16,7 @@ def extract_data(file):
         can_id_pattern = re.compile(r'ID:\s*(0x[0-9A-Fa-f]+)')
         data_bytes_pattern = re.compile(r'Data Bytes:\s*(.*)')
         measurement_pattern = re.compile(r'(\w+):\s*(.*)')
+        timestamp_pattern = re.compile(r'Timestamp:\s*(\d{2}:\d{2}:\d{2})')  # Example pattern
 
         current_id = None
         for line in lines:
@@ -40,6 +41,12 @@ def extract_data(file):
                     pass
                 data[current_id][key].append(value)
 
+            timestamp_match = timestamp_pattern.search(line)
+            if timestamp_match and current_id:
+                timestamp = timestamp_match.group(1)
+                # Assuming timestamp is in 'HH:MM:SS' format
+                data[current_id]['Timestamps'].append(pd.to_datetime(timestamp, format='%H:%M:%S'))
+
     except Exception as e:
         st.error(f"Error reading the file: {e}")
     return data
@@ -55,23 +62,25 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
 
     for i, measurement in enumerate(selected_measurements):
         values = data[selected_id][measurement]
+        timestamps = data[selected_id].get('Timestamps', [None]*len(values))  # Default to None if no timestamps available
+        
         if values:
             df = pd.DataFrame({
-                'Index': list(range(len(values))),
+                'Time': timestamps,
                 'Value': values
             })
 
             if chart_type == 'Line Chart':
-                fig = px.line(df, x='Index', y='Value', title=f'Line Chart for {measurement}', 
+                fig = px.line(df, x='Time', y='Value', title=f'Line Chart for {measurement}', 
                               line_shape='linear', color_discrete_sequence=[color_palette[i % len(color_palette)]])
             elif chart_type == 'Bar Chart':
-                fig = px.bar(df, x='Index', y='Value', title=f'Bar Chart for {measurement}', 
+                fig = px.bar(df, x='Time', y='Value', title=f'Bar Chart for {measurement}', 
                              color_discrete_sequence=[color_palette[i % len(color_palette)]])
             elif chart_type == 'Scatter Plot':
-                fig = px.scatter(df, x='Index', y='Value', title=f'Scatter Plot for {measurement}', 
+                fig = px.scatter(df, x='Time', y='Value', title=f'Scatter Plot for {measurement}', 
                                 color_discrete_sequence=[color_palette[i % len(color_palette)]])
             elif chart_type == 'Area Chart':
-                fig = px.area(df, x='Index', y='Value', title=f'Area Chart for {measurement}', 
+                fig = px.area(df, x='Time', y='Value', title=f'Area Chart for {measurement}', 
                               color_discrete_sequence=[color_palette[i % len(color_palette)]])
             elif chart_type == 'Histogram':
                 fig = px.histogram(df, x='Value', title=f'Histogram for {measurement}', 
@@ -80,11 +89,9 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
                 fig = px.box(df, y='Value', title=f'Box Plot for {measurement}', 
                              color_discrete_sequence=[color_palette[i % len(color_palette)]])
             elif chart_type == 'Stacked Bar Chart':
-                # For a stacked bar chart, we need to aggregate data by some category.
-                # Assuming 'Index' is the category for stacking
-                df['Index'] = df['Index'].astype(str)
-                fig = px.bar(df, x='Index', y='Value', title=f'Stacked Bar Chart for {measurement}', 
-                             color='Index', color_discrete_sequence=color_palette)
+                df['Time'] = df['Time'].astype(str)
+                fig = px.bar(df, x='Time', y='Value', title=f'Stacked Bar Chart for {measurement}', 
+                             color='Time', color_discrete_sequence=color_palette)
             elif chart_type == 'Donut Chart':
                 df = df.groupby('Value').size().reset_index(name='Count')
                 fig = px.pie(df, values='Count', names='Value', title=f'Donut Chart for {measurement}', 
@@ -123,7 +130,7 @@ def main():
             selected_id = st.selectbox("Select CAN ID to plot", unique_ids)
             if selected_id:
                 measurements = data[selected_id]
-                measurement_names = [key for key in measurements.keys() if key != 'Data Bytes']
+                measurement_names = [key for key in measurements.keys() if key not in ['Data Bytes', 'Timestamps']]
                 
                 st.write("Select measurements to plot:")
                 selected_measurements = [key for key in measurement_names if st.checkbox(key, key=key)]
