@@ -98,7 +98,7 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
 
             measurement_plots.append(fig)
 
-    if measurement_plots:
+    if measurement_plots:s
         # Display all charts in a vertical layout
         for fig in measurement_plots:
             st.plotly_chart(fig, use_container_width=True)
@@ -107,7 +107,7 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
 
 # Main function to handle the Streamlit app logic
 def main():
-    st.set_page_config(layout="centered", page_icon="📈", page_title="CAN Bus Data Plotter")
+    st.set_page_config(layout="centered", page_icon="📈", page_title="Takumi CAN Bus Data Plotter")
     st.title("CAN Bus Data Plotter")
 
     uploaded_file = st.file_uploader("Upload a CAN bus data file", type="txt")
