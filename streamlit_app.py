@@ -88,13 +88,6 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
             elif chart_type == 'Pie Chart':
                 df = df.groupby('Value').size().reset_index(name='Count')
                 fig = px.pie(df, values='Count', names='Value', title=f'Pie Chart for {measurement}')
-            elif chart_type == 'Bubble Chart':
-                fig = px.scatter(df, x='Index', y='Value', size='Value', title=f'Bubble Chart for {measurement}', 
-                                color_discrete_sequence=[color_palette[i % len(color_palette)]])
-            elif chart_type == 'Radar Chart':
-                # Plotly Radar charts require specialized data; using a simple line chart instead
-                st.write("Radar charts are not supported by Plotly Express; consider using Plotly Graph Objects.")
-                continue
             else:
                 st.write(f"Unsupported chart type: {chart_type}")
                 return
@@ -136,8 +129,7 @@ def main():
 
                 chart_type = st.selectbox("Select chart type", [
                     'Line Chart', 'Bar Chart', 'Scatter Plot', 'Area Chart',
-                    'Histogram', 'Box Plot', 'Heatmap', 'Pie Chart',
-                    'Bubble Chart', 'Radar Chart'
+                    'Histogram', 'Box Plot', 'Heatmap', 'Pie Chart'
                 ])
 
                 if selected_measurements:
