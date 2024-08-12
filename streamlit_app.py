@@ -1,11 +1,25 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from datetime import datetime
 from collections import defaultdict
 import io
 import re
+
+# Initialize session state for tracking plotting status and stored plots
+if 'stored_plots' not in st.session_state:
+    st.session_state.stored_plots = []
+if 'is_plotting' not in st.session_state:
+    st.session_state.is_plotting = False
+if 'current_id' not in st.session_state:
+    st.session_state.current_id = None
+
+# Define a color palette with a range of colors
+color_palette = [
+    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
+    '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#1f77b4', '#ff7f0e',
+    '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f'
+]
 
 # Function to extract data from the uploaded file
 def extract_data(file):
@@ -38,7 +52,7 @@ def extract_data(file):
                 try:
                     value = float(value.replace('A', '').replace('rpm', '').replace('deg', '').replace('Nm', ''))
                 except ValueError:
-                    pass
+                    continue
                 data[current_id][key].append(value)
 
     except Exception as e:
@@ -46,15 +60,19 @@ def extract_data(file):
     return data
 
 # Function to plot data using Plotly
-def plot_data(selected_id, selected_measurements, data, chart_type):
-    if not selected_measurements:
-        st.write("No measurements selected for plotting.")
-        return
+def plot_data(selected_id, selected_measurement, data, chart_type):
+    st.session_state.is_plotting = True
+    with st.spinner('Plotting data...'):
+        # Simulate plotting time for demonstration
+        import time
+        time.sleep(2)
+        
+        if not selected_measurement:
+            st.write("No measurement selected for plotting.")
+            st.session_state.is_plotting = False
+            return
 
-    color_palette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f']
-    measurement_plots = []
-
-    for i, measurement in enumerate(selected_measurements):
+        measurement = selected_measurement
         values = data[selected_id][measurement]
         if values:
             df = pd.DataFrame({
@@ -62,26 +80,29 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
                 'Value': values
             })
 
+            # Determine color for this plot
+            color_index = len(st.session_state.stored_plots) % len(color_palette)
+            color = color_palette[color_index]
+
             if chart_type == 'Line Chart':
                 fig = px.line(df, x='Index', y='Value', title=f'Line Chart for {measurement}', 
-                              line_shape='linear', color_discrete_sequence=[color_palette[i % len(color_palette)]])
+                              line_shape='linear', color_discrete_sequence=[color])
             elif chart_type == 'Bar Chart':
                 fig = px.bar(df, x='Index', y='Value', title=f'Bar Chart for {measurement}', 
-                             color_discrete_sequence=[color_palette[i % len(color_palette)]])
+                             color_discrete_sequence=[color])
             elif chart_type == 'Scatter Plot':
                 fig = px.scatter(df, x='Index', y='Value', title=f'Scatter Plot for {measurement}', 
-                                color_discrete_sequence=[color_palette[i % len(color_palette)]])
+                                color_discrete_sequence=[color])
             elif chart_type == 'Area Chart':
                 fig = px.area(df, x='Index', y='Value', title=f'Area Chart for {measurement}', 
-                              color_discrete_sequence=[color_palette[i % len(color_palette)]])
+                              color_discrete_sequence=[color])
             elif chart_type == 'Histogram':
                 fig = px.histogram(df, x='Value', title=f'Histogram for {measurement}', 
-                                   color_discrete_sequence=[color_palette[i % len(color_palette)]])
+                                   color_discrete_sequence=[color])
             elif chart_type == 'Box Plot':
                 fig = px.box(df, y='Value', title=f'Box Plot for {measurement}', 
-                             color_discrete_sequence=[color_palette[i % len(color_palette)]])
+                             color_discrete_sequence=[color])
             elif chart_type == 'Heatmap':
-                # For a heatmap, we'll need 2D data. We'll use 'Index' for x and 'Value' for y for demonstration.
                 df['Index'] = df['Index'].astype(str)
                 fig = px.density_heatmap(df, x='Index', y='Value', title=f'Heatmap for {measurement}', 
                                         color_continuous_scale='Viridis')
@@ -90,19 +111,15 @@ def plot_data(selected_id, selected_measurements, data, chart_type):
                 fig = px.pie(df, values='Count', names='Value', title=f'Pie Chart for {measurement}')
             else:
                 st.write(f"Unsupported chart type: {chart_type}")
+                st.session_state.is_plotting = False
                 return
 
-            # Update layout for interactivity
             fig.update_layout(width=700, height=400)
 
-            measurement_plots.append(fig)
-
-    if measurement_plots:
-        # Display all charts in a vertical layout
-        for fig in measurement_plots:
-            st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.write("No data available for the selected measurements.")
+            # Store the plot in session state
+            st.session_state.stored_plots.append(fig)
+        
+        st.session_state.is_plotting = False
 
 # Main function to handle the Streamlit app logic
 def main():
@@ -120,22 +137,37 @@ def main():
             st.write(sorted(unique_ids))
 
             selected_id = st.selectbox("Select CAN ID to plot", unique_ids)
+            
+            # Check if selected ID has changed and clear stored plots if necessary
+            if st.session_state.current_id != selected_id:
+                st.session_state.stored_plots = []
+                st.session_state.current_id = selected_id
+
             if selected_id:
                 measurements = data[selected_id]
                 measurement_names = [key for key in measurements.keys() if key != 'Data Bytes']
                 
-                st.write("Select measurements to plot:")
-                selected_measurements = [key for key in measurement_names if st.checkbox(key, key=key)]
+                st.write("Select measurement to plot:")
+                selected_measurement = st.radio("Measurement", measurement_names, key="measurement_selection")
 
                 chart_type = st.selectbox("Select chart type", [
                     'Line Chart', 'Bar Chart', 'Scatter Plot', 'Area Chart',
                     'Histogram', 'Box Plot', 'Heatmap', 'Pie Chart'
                 ])
 
-                if selected_measurements:
-                    plot_data(selected_id, selected_measurements, data, chart_type)
+                if st.session_state.is_plotting:
+                    st.write("Please wait, the graph is being plotted...")
                 else:
-                    st.write("Select measurements to plot.")
+                    if selected_measurement:
+                        plot_data(selected_id, selected_measurement, data, chart_type)
+                    else:
+                        st.write("Select a measurement to plot.")
+
+            # Display all stored plots
+            if st.session_state.stored_plots:
+                st.write("Previously plotted graphs:")
+                for fig in st.session_state.stored_plots:
+                    st.plotly_chart(fig, use_container_width=True)
         else:
             st.write("No data found or file is empty.")
 
